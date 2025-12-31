@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VisionCare - Assistive Communication Platform</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        /* --- YOUR ORIGINAL CSS (Unchanged) --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --primary: #6366f1; --primary-dark: #4f46e5; --success: #10b981; --warning: #f59e0b; --danger: #ef4444; --dark: #1e293b; --light: #f8fafc; --border: #e2e8f0; --text: #334155; --text-light: #64748b; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        
+        .auth-container { background: white; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden; max-width: 900px; width: 100%; display: grid; grid-template-columns: 1fr 1fr; animation: slideUp 0.6s ease; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        .auth-left { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); padding: 60px 40px; color: white; display: flex; flex-direction: column; justify-content: center; }
+        .auth-left h1 { font-size: 2.5rem; margin-bottom: 20px; font-weight: 700; }
+        .auth-left p { font-size: 1.1rem; opacity: 0.9; line-height: 1.6; margin-bottom: 30px; }
+        .feature-list { list-style: none; }
+        .feature-list li { padding: 12px 0; display: flex; align-items: center; font-size: 0.95rem; }
+        .feature-list li:before { content: "✓"; margin-right: 15px; background: rgba(255,255,255,0.2); width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        .auth-right { padding: 60px 40px; background: white; }
+        .auth-tabs { display: flex; gap: 10px; margin-bottom: 40px; border-bottom: 2px solid var(--border); }
+        .auth-tab { padding: 12px 24px; background: none; border: none; font-size: 1.1rem; cursor: pointer; color: var(--text-light); font-weight: 600; transition: all 0.3s; position: relative; }
+        .auth-tab.active { color: var(--primary); }
+        .auth-tab.active:after { content: ""; position: absolute; bottom: -2px; left: 0; right: 0; height: 2px; background: var(--primary); }
+        .auth-form { display: none; }
+        .auth-form.active { display: block; }
+        .form-group { margin-bottom: 25px; }
+        .form-group label { display: block; margin-bottom: 8px; color: var(--text); font-weight: 600; font-size: 0.9rem; }
+        .form-group input, .form-group select { width: 100%; padding: 14px 18px; border: 2px solid var(--border); border-radius: 10px; font-size: 1rem; transition: all 0.3s; background: var(--light); }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--primary); background: white; }
+        .btn { width: 100%; padding: 16px; border: none; border-radius: 10px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s; margin-top: 10px; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3); }
+
+        .dashboard { display: none; background: var(--light); min-height: 100vh; width: 100%; }
+        .dashboard.active { display: block; }
+        .navbar { background: white; padding: 20px 40px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
+        .navbar-brand { font-size: 1.5rem; font-weight: 700; color: var(--primary); }
+        .navbar-user { display: flex; align-items: center; gap: 20px; }
+        .user-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; }
+        .btn-logout { padding: 10px 20px; background: var(--danger); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s; }
+        .btn-logout:hover { background: #dc2626; }
+        
+        .dashboard-container { padding: 30px 40px; display: grid; grid-template-columns: 300px 1fr 350px; gap: 25px; max-width: 1800px; margin: 0 auto; }
+        .panel { background: white; border-radius: 16px; padding: 25px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        .panel-title { font-size: 1.3rem; font-weight: 700; color: var(--dark); margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid var(--border); }
+        
+        .status-item { padding: 18px; background: var(--light); border-radius: 12px; margin-bottom: 15px; border-left: 4px solid var(--primary); }
+        .status-label { font-size: 0.85rem; color: var(--text-light); margin-bottom: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        .status-value { font-size: 1.2rem; font-weight: 700; color: var(--dark); display: flex; align-items: center; gap: 10px; }
+        .status-indicator { width: 12px; height: 12px; border-radius: 50%; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .status-online { background: var(--success); }
+        .emergency-btn { width: 100%; padding: 20px; background: var(--danger); color: white; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: 700; cursor: pointer; margin-top: 20px; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .emergency-btn:hover { background: #dc2626; transform: scale(1.05); }
+        
+        .live-feed { background: var(--dark); border-radius: 12px; height: 350px; display: flex; align-items: center; justify-content: center; color: white; margin-bottom: 25px; overflow: hidden; position: relative; }
+        .message-box { padding: 30px; border-radius: 12px; text-align: center; font-size: 2rem; font-weight: 700; margin-bottom: 25px; transition: all 0.3s; background: var(--light); }
+        .message-normal { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; }
+        .message-request { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; }
+        .message-emergency { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; animation: blink 1s infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+        
+        .quick-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .quick-btn { padding: 15px; border: 2px solid var(--border); background: white; border-radius: 10px; cursor: pointer; font-weight: 600; transition: all 0.3s; }
+        .quick-btn:hover { border-color: var(--primary); background: var(--primary); color: white; transform: translateY(-2px); }
+        
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
+        .stat-card { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); padding: 20px; border-radius: 12px; color: white; }
+        .stat-value { font-size: 2rem; font-weight: 700; margin-bottom: 5px; }
+        .stat-label { font-size: 0.85rem; opacity: 0.9; }
+        .chart-container { height: 250px; margin-top: 20px; }
+        
+        .log-table { width: 100%; margin-top: 20px; }
+        .log-table table { width: 100%; border-collapse: collapse; }
+        .log-table th { background: var(--light); padding: 12px; text-align: left; font-size: 0.85rem; color: var(--text-light); font-weight: 600; text-transform: uppercase; }
+        .log-table td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+        
+        .nav-menu { display: flex; gap: 10px; padding: 20px 40px; background: white; border-bottom: 1px solid var(--border); }
+        .nav-btn { padding: 12px 24px; background: none; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; color: var(--text); transition: all 0.3s; }
+        .nav-btn.active { background: var(--primary); color: white; }
+        .nav-btn:hover { background: var(--light); }
+        
+        .page { display: none; }
+        .page.active { display: block; }
+        
+        .emergency-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(239, 68, 68, 0.95); z-index: 9999; align-items: center; justify-content: center; animation: emergencyPulse 1s infinite; }
+        .emergency-overlay.active { display: flex; }
+        @keyframes emergencyPulse { 0%, 100% { background: rgba(239, 68, 68, 0.95); } 50% { background: rgba(239, 68, 68, 0.8); } }
+        .emergency-content { text-align: center; color: white; animation: shake 0.5s infinite; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+        .emergency-content h1 { font-size: 5rem; margin-bottom: 30px; }
+        .emergency-content p { font-size: 2rem; margin-bottom: 40px; }
+        .btn-dismiss { padding: 20px 40px; background: white; color: var(--danger); border: none; border-radius: 12px; font-size: 1.2rem; font-weight: 700; cursor: pointer; }
+
+        @media (max-width: 1200px) { .dashboard-container, .auth-container { grid-template-columns: 1fr; } .auth-left { display: none; } }
+    </style>
+</head>
+<body>
+    <div class="auth-container" id="authPage">
+        <div class="auth-left">
+            <h1>🎯 VisionCare</h1>
+            <p>AI-Powered Vision-Based Assistive Communication & Emergency Platform</p>
+            <ul class="feature-list">
+                <li>Real-time Gesture Recognition (22+ Gestures)</li>
+                <li>Voice Feedback & Text Output</li>
+                <li>Emergency SOS System</li>
+                <li>Secure Caregiver Access</li>
+            </ul>
+        </div>
+        <div class="auth-right">
+            <div class="auth-tabs">
+                <button class="auth-tab active" onclick="switchTab('login')">Login</button>
+                <button class="auth-tab" onclick="switchTab('signup')">Sign Up</button>
+            </div>
+            <form class="auth-form active" id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" placeholder="helper@visioncare.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Login to Dashboard</button>
+            </form>
+            <form class="auth-form" id="signupForm" onsubmit="handleSignup(event)">
+                <div class="form-group"><label>Full Name</label><input type="text" placeholder="John Doe" required></div>
+                <button type="submit" class="btn btn-primary">Create Account</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="dashboard" id="dashboardPage">
+        <div class="navbar">
+            <div class="navbar-brand">🎯 VisionCare Platform</div>
+            <div class="navbar-user">
+                <span><strong>Welcome, Helper John</strong></span>
+                <div class="user-avatar">JD</div>
+                <button class="btn-logout" onclick="handleLogout()">Logout</button>
+            </div>
+        </div>
+
+        <div class="nav-menu">
+            <button class="nav-btn active" onclick="switchPage('dashboard')">Dashboard</button>
+            <button class="nav-btn" onclick="switchPage('analytics')">Analytics</button>
+            <button class="nav-btn" onclick="switchPage('logs')">Communication Logs</button>
+        </div>
+
+        <div class="page active" id="dashboardPage1">
+            <div class="dashboard-container">
+                <div class="panel">
+                    <h2 class="panel-title">👤 Patient Status</h2>
+                    <div class="status-item">
+                        <div class="status-label">Camera Status</div>
+                        <div class="status-value"><span class="status-indicator status-online"></span> Active</div>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-label">Current Gesture</div>
+                        <div class="status-value" id="currentGestureText">Scanning...</div>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-label">Emergency Status</div>
+                        <div class="status-value" id="emergencyStatusText" style="color: var(--success);">Normal</div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <h2 class="panel-title">📹 Live Assist View</h2>
+                    <div class="live-feed">
+                        <img src="/video_feed" style="width:100%; height:100%; object-fit:contain; transform: scaleX(-1);"> 
+                    </div>
+
+                    <div class="message-box" id="messageBox">Scanning...</div>
+
+                    <h3 style="margin-bottom: 15px;">Quick Actions</h3>
+                    <div class="quick-actions">
+                        <button class="quick-btn">✓ Acknowledge</button>
+                        <button class="quick-btn">💧 Water Sent</button>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <h2 class="panel-title">📊 Analytics</h2>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value">147</div>
+                            <div class="stat-label">Gestures Today</div>
+                        </div>
+                        <div class="stat-card" style="background: var(--danger);">
+                            <div class="stat-value">0</div>
+                            <div class="stat-label">SOS Alerts</div>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="gestureChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page" id="analyticsPage">
+            <div style="padding: 30px 40px; max-width: 1400px; margin: 0 auto;">
+                <h2 style="font-size: 2rem; margin-bottom: 30px; color: var(--dark);">📈 Advanced Analytics</h2>
+                <div class="panel">
+                    <h3 class="panel-title">Most Used Commands</h3>
+                    <div style="height: 300px;"><canvas id="commandChart"></canvas></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page" id="logsPage">
+            <div style="padding: 30px 40px; max-width: 1400px; margin: 0 auto;">
+                <h2 style="font-size: 2rem; margin-bottom: 30px; color: var(--dark);">📋 Communication Logs</h2>
+                <div class="panel">
+                    <div class="log-table">
+                        <table>
+                            <thead><tr><th>Time</th><th>Message</th><th>Status</th></tr></thead>
+                            <tbody>
+                                <tr><td>10:45 AM</td><td>"I need help"</td><td><span style="color: var(--warning);">Pending</span></td></tr>
+                                <tr><td>10:30 AM</td><td>"I need water"</td><td><span style="color: var(--success);">Fulfilled</span></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="emergency-overlay" id="emergencyOverlay">
+        <div class="emergency-content">
+            <h1>🚨 EMERGENCY 🚨</h1>
+            <p>User Requesting Immediate Help!</p>
+            <button class="btn-dismiss" onclick="dismissEmergency()">ACKNOWLEDGE & DISMISS</button>
+        </div>
+    </div>
+
+    <script>
+        // --- UI & TAB LOGIC ---
+        function switchTab(tab) {
+            document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+            if (tab === 'login') {
+                document.getElementById('loginForm').classList.add('active');
+                document.querySelectorAll('.auth-tab')[0].classList.add('active');
+            } else {
+                document.getElementById('signupForm').classList.add('active');
+                document.querySelectorAll('.auth-tab')[1].classList.add('active');
+            }
+        }
+
+        function switchPage(page) {
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            if(page === 'dashboard') document.getElementById('dashboardPage1').classList.add('active');
+            if(page === 'analytics') { document.getElementById('analyticsPage').classList.add('active'); initAnalyticsCharts(); }
+            if(page === 'logs') document.getElementById('logsPage').classList.add('active');
+        }
+
+        // --- GLOBAL AUDIO CONTEXT (Singleton) ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        let oscillator = null;
+
+        function playEmergencySound() {
+            if (oscillator) return;
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+
+            oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            oscillator.frequency.value = 800;
+            oscillator.type = 'sawtooth';
+            gainNode.gain.value = 0.2;
+
+            oscillator.start();
+        }
+
+        function stopEmergencySound() {
+            if (oscillator) {
+                oscillator.stop();
+                oscillator = null;
+            }
+        }
+
+        // --- MAIN LOGIC ---
+        function handleLogin(e) {
+            e.preventDefault();
+            
+            // UNLOCK BROWSER AUDIO
+            audioCtx.resume();
+            const silent = new SpeechSynthesisUtterance("");
+            window.speechSynthesis.speak(silent);
+
+            document.getElementById('authPage').style.display = 'none';
+            document.getElementById('dashboardPage').classList.add('active');
+            initCharts();
+            
+            speak("Welcome to Vision Care.");
+            startPolling();
+        }
+
+        function handleLogout() {
+            if (confirm('Are you sure?')) window.location.reload();
+        }
+
+        function dismissEmergency() {
+            document.getElementById('emergencyOverlay').classList.remove('active');
+            isEmergencyActive = false;
+            stopEmergencySound();
+            window.speechSynthesis.cancel();
+        }
+
+        // --- BACKEND INTEGRATION ---
+        let lastSpokenMessage = "";
+        let isEmergencyActive = false;
+        let lastSpeechTime = 0;
+
+        function speak(text) {
+            if (!text || text === "Scanning..." || text === "Waiting..." || text === "Holding...") return;
+
+            const currentTime = Date.now();
+            if (text === lastSpokenMessage && (currentTime - lastSpeechTime < 2500)) return;
+
+            window.speechSynthesis.cancel();
+
+            const msg = new SpeechSynthesisUtterance(text);
+            msg.rate = 1.0; 
+            
+            const voices = window.speechSynthesis.getVoices();
+            const preferredVoice = voices.find(v => v.name.includes("Google US English") || v.name.includes("Zira"));
+            if (preferredVoice) msg.voice = preferredVoice;
+
+            window.speechSynthesis.speak(msg);
+            
+            lastSpokenMessage = text;
+            lastSpeechTime = currentTime;
+        }
+
+        function startPolling() {
+            setInterval(() => {
+                fetch('/status')
+                    .then(response => response.json())
+                    .then(data => {
+                        updateUI(data);
+                    })
+                    .catch(err => console.log("Backend Offline"));
+            }, 500);
+        }
+
+        function updateUI(data) {
+            const messageBox = document.getElementById('messageBox');
+            const gestureText = document.getElementById('currentGestureText');
+            
+            gestureText.innerText = data.gesture_name;
+            
+            if (data.emergency) {
+                if (!isEmergencyActive) {
+                    document.getElementById('emergencyOverlay').classList.add('active');
+                    playEmergencySound();
+                    speak("Emergency! The patient needs help!");
+                    isEmergencyActive = true;
+                }
+                messageBox.className = "message-box message-emergency";
+                messageBox.innerText = "🚨 EMERGENCY SOS 🚨";
+            } 
+            else {
+                if (data.emergency === false && isEmergencyActive) {
+                    dismissEmergency();
+                }
+
+                if (["Scanning...", "Waiting...", "Holding..."].includes(data.message)) {
+                    messageBox.className = "message-box";
+                    messageBox.style.background = "#f8fafc";
+                    messageBox.style.color = "#334155";
+                    messageBox.innerText = data.message;
+                } 
+                else {
+                    messageBox.className = "message-box message-request";
+                    messageBox.innerHTML = `USER SAID:<br>"${data.message}"`;
+                    speak(data.message);
+                }
+            }
+        }
+
+        // --- CHARTS ---
+        function initCharts() {
+            const ctx = document.getElementById('gestureChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Help', 'Water', 'Yes', 'No', 'Stop'],
+                    datasets: [{
+                        label: 'Count',
+                        data: [12, 19, 3, 5, 2],
+                        backgroundColor: ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6']
+                    }]
+                },
+                options: { plugins: { legend: { display: false } } }
+            });
+            const ctx2 = document.getElementById('commandChart').getContext('2d');
+            new Chart(ctx2, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Washroom', 'Water', 'Yes', 'No', 'Doctor'],
+                    datasets: [{
+                        data: [45, 32, 28, 18, 24],
+                        backgroundColor: ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6']
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
+        function initAnalyticsCharts() {
+             // Optional: Add more charts here if you want them on the separate tab
+        }
+    </script>
+</body>
+</html>
