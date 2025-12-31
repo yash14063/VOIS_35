@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VisionCare AI - Pro Version</title>
+    <title>VisionCare AI - Hospital Suite</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 
     <style>
-        /* --- PROFESSIONAL DARK THEME CSS --- */
         :root {
             --primary: #6366f1;
             --primary-dark: #4f46e5;
@@ -28,224 +28,338 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: 'Inter', 'Segoe UI', sans-serif;
+            font-family: 'Segoe UI', sans-serif;
             background-color: var(--bg-dark);
             color: var(--text-main);
             height: 100vh;
+            overflow: hidden;
             display: flex;
             flex-direction: column;
-            overflow: hidden; /* Prevent scrolling on desktop */
         }
 
-        /* NAVBAR */
-        .navbar {
-            height: 70px;
-            background: var(--bg-card);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 30px;
-            border-bottom: 1px solid #334155;
-            flex-shrink: 0;
-        }
-
-        .logo { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.5px; }
-        .badge { background: var(--primary); font-size: 0.7rem; padding: 3px 8px; border-radius: 4px; vertical-align: middle; margin-left: 8px; }
-        .online { color: var(--success); font-weight: 600; }
-
-        /* CONTAINER LAYOUT */
-        .container {
-            display: grid;
-            grid-template-columns: 65% 35%; /* Video takes more space */
-            gap: 20px;
-            padding: 20px;
-            height: calc(100vh - 70px); /* Full height minus navbar */
-        }
-
-        /* VIDEO SECTION */
-        .video-section {
-            background: black;
-            border-radius: 16px;
-            overflow: hidden;
-            position: relative;
-            border: 2px solid #334155;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .video-wrapper { position: relative; width: 100%; height: 100%; }
-        video, canvas { 
-            position: absolute; top: 0; left: 0; 
-            width: 100%; height: 100%; 
-            object-fit: cover; /* Ensures video fills box */
-            transform: scaleX(-1); /* Mirror effect */
-        }
-
-        .overlay-text {
-            position: absolute; bottom: 20px; left: 20px;
-            background: rgba(0,0,0,0.7); padding: 10px 20px;
-            border-radius: 8px; font-weight: bold; font-size: 1.2rem;
-            backdrop-filter: blur(5px);
-            z-index: 10;
-        }
-
-        /* DATA PANEL */
-        .data-section { 
-            display: flex; 
-            flex-direction: column; 
-            gap: 15px; 
-            overflow-y: auto; /* Allow scrolling for logs */
-            padding-right: 5px;
-        }
-
-        .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .card { background: var(--bg-card); padding: 15px 20px; border-radius: 12px; border: 1px solid #334155; }
-        .card-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
-        .card-value { font-size: 1.2rem; font-weight: 700; margin-top: 5px; color: var(--text-main); }
-        .highlight { color: var(--primary); }
-
-        .chart-card { height: 180px; padding: 10px; display: flex; align-items: center; justify-content: center;}
-        
-        /* MESSAGE BOX */
-        .message-box {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            padding: 20px; border-radius: 12px;
-            text-align: center; font-size: 1.3rem; font-weight: bold;
-            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.2);
-            transition: all 0.3s ease;
-            min-height: 80px;
-            display: flex; align-items: center; justify-content: center; gap: 10px;
-        }
-
-        .message-box.emergency {
-            background: linear-gradient(135deg, #dc2626, #991b1b);
-            animation: flash 0.8s infinite;
-        }
-
-        /* LOGS */
-        .logs-panel { flex: 1; background: var(--bg-card); border-radius: 12px; padding: 15px; overflow-y: auto; min-height: 150px;}
-        .logs-panel h3 { font-size: 0.9rem; margin-bottom: 10px; color: var(--text-muted); border-bottom: 1px solid #334155; padding-bottom: 5px; }
-        #logList { list-style: none; font-size: 0.85rem; padding: 0; }
-        #logList li { padding: 6px 0; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; }
-        #logList li span { color: var(--text-muted); font-size: 0.75rem; }
-
-        /* LOADER OVERLAY */
-        #loader {
+        /* --- 1. AUTH SCREEN --- */
+        #auth-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--bg-dark); z-index: 1000;
+            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+            z-index: 2000;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .auth-box {
+            background: white; color: #333;
+            width: 900px; height: 500px;
+            border-radius: 20px; overflow: hidden;
+            display: grid; grid-template-columns: 1fr 1fr;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        .auth-left {
+            background: var(--primary); color: white;
+            padding: 40px; display: flex; flex-direction: column; justify-content: center;
+        }
+        .auth-right { padding: 40px; display: flex; flex-direction: column; justify-content: center; }
+
+        .auth-input {
+            width: 100%; padding: 12px; margin: 10px 0;
+            border: 1px solid #ddd; border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .btn-login {
+            width: 100%; padding: 12px; background: var(--primary);
+            color: white; border: none; border-radius: 8px;
+            font-size: 1rem; font-weight: bold; cursor: pointer;
+            margin-top: 10px; transition: 0.3s;
+        }
+        .btn-login:hover { background: var(--primary-dark); }
+
+        /* --- 2. MAIN LAYOUT --- */
+        #app-screen { display: none; height: 100%; flex-direction: column; }
+
+        .navbar {
+            height: 60px; background: var(--bg-card);
+            border-bottom: 1px solid #334155;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 20px;
+        }
+
+        .nav-tabs { display: flex; gap: 10px; }
+        .nav-btn {
+            background: transparent; color: var(--text-muted);
+            border: none; padding: 8px 16px; border-radius: 6px;
+            cursor: pointer; font-weight: 600; transition: 0.3s;
+        }
+        .nav-btn.active { background: var(--primary); color: white; }
+        .nav-btn:hover:not(.active) { background: rgba(255,255,255,0.1); }
+
+        .main-content {
+            flex: 1; padding: 20px;
+            display: grid; grid-template-columns: 2fr 1fr; gap: 20px;
+            overflow: hidden;
+        }
+
+        /* --- 3. SECTIONS --- */
+        .section { display: none; height: 100%; }
+        .section.active { display: block; } /* For full width sections */
+        .grid-section { display: none; height: 100%; width: 100%; grid-template-columns: 2fr 1fr; gap: 20px; }
+        .grid-section.active { display: grid; }
+
+        /* --- VIDEO MONITOR --- */
+        .video-container {
+            background: black; border-radius: 12px;
+            border: 2px solid #334155; position: relative;
+            overflow: hidden; display: flex; align-items: center; justify-content: center;
+        }
+        video, canvas { position: absolute; width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+        
+        .overlay-status {
+            position: absolute; top: 20px; left: 20px;
+            background: rgba(0,0,0,0.7); color: white;
+            padding: 8px 15px; border-radius: 20px; font-size: 0.9rem;
+            backdrop-filter: blur(4px); display: flex; align-items: center; gap: 8px;
+        }
+        .dot { width: 10px; height: 10px; background: #ef4444; border-radius: 50%; }
+        .dot.active { background: #10b981; box-shadow: 0 0 10px #10b981; }
+
+        /* --- SIDEBAR CONTROLS --- */
+        .sidebar { display: flex; flex-direction: column; gap: 15px; overflow-y: auto; }
+        
+        .card { background: var(--bg-card); padding: 15px; border-radius: 12px; border: 1px solid #334155; }
+        .card h3 { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 5px; }
+        .card .value { font-size: 1.4rem; font-weight: bold; }
+        
+        .msg-box {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            padding: 20px; border-radius: 12px; text-align: center;
+            font-size: 1.2rem; font-weight: bold; min-height: 80px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .msg-box.sos { background: linear-gradient(135deg, #dc2626, #991b1b); animation: flash 0.8s infinite; }
+
+        /* --- PATIENT INFO TAB --- */
+        .patient-grid {
+            display: grid; grid-template-columns: 300px 1fr; gap: 30px;
+            height: 100%;
+        }
+        .profile-card {
+            background: var(--bg-card); padding: 30px; border-radius: 16px;
+            text-align: center; border: 1px solid #334155;
+        }
+        .profile-img {
+            width: 120px; height: 120px; background: #334155;
+            border-radius: 50%; margin: 0 auto 20px;
+            display: flex; align-items: center; justify-content: center; font-size: 3rem;
+        }
+        .detail-row {
+            display: flex; justify-content: space-between; padding: 12px 0;
+            border-bottom: 1px solid #334155; font-size: 0.95rem;
+        }
+        
+        /* --- COMM LOGS TAB --- */
+        .chat-container {
+            background: var(--bg-card); border-radius: 16px;
+            height: 100%; display: flex; flex-direction: column;
+            border: 1px solid #334155; overflow: hidden;
+        }
+        .chat-header { padding: 20px; border-bottom: 1px solid #334155; background: rgba(0,0,0,0.2); }
+        .chat-body { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+        
+        .chat-msg { max-width: 70%; padding: 12px 18px; border-radius: 12px; font-size: 0.95rem; }
+        .chat-msg.system { align-self: flex-start; background: #334155; color: #f8fafc; border-bottom-left-radius: 2px; }
+        .chat-msg.user { align-self: flex-end; background: var(--primary); color: white; border-bottom-right-radius: 2px; }
+        .time-stamp { font-size: 0.7rem; opacity: 0.7; margin-top: 5px; display: block; text-align: right; }
+
+        @keyframes flash { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+        
+        /* LOADING */
+        #loader-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); z-index: 10;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
-        .spinner {
-            width: 60px; height: 60px;
-            border: 5px solid #334155; border-top: 5px solid var(--primary);
-            border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 30px;
-        }
-        #startBtn {
-            display: none; padding: 15px 40px;
-            background: var(--primary); color: white; border: none;
-            border-radius: 50px; font-size: 1.1rem; font-weight: bold;
-            cursor: pointer; margin-top: 20px;
-            transition: transform 0.2s;
-        }
-        #startBtn:hover { transform: scale(1.05); }
-
+        .spinner { width: 40px; height: 40px; border: 4px solid #fff; border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
-        @keyframes flash { 0%, 100% { opacity: 1; } 50% { opacity: 0.8; } }
 
-        /* MOBILE RESPONSIVE */
         @media(max-width: 900px) {
-            .container { grid-template-columns: 1fr; height: auto; overflow-y: auto; display: block; }
-            .video-section { height: 350px; margin-bottom: 20px; }
-            body { overflow: auto; }
+            .auth-box { width: 100%; height: 100%; border-radius: 0; grid-template-columns: 1fr; }
+            .auth-left { display: none; }
+            .grid-section { grid-template-columns: 1fr; }
+            .patient-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
 
-    <div id="loader">
-        <div class="spinner"></div>
-        <h2 id="loadingText">Initializing Neural Networks...</h2>
-        <p style="color: #94a3b8; margin-top:10px;">Please allow camera access.</p>
-        <button id="startBtn" onclick="initApp()">LAUNCH SYSTEM</button>
+    <div id="auth-screen">
+        <div class="auth-box">
+            <div class="auth-left">
+                <h1>👁 VisionCare</h1>
+                <p style="margin-top: 10px; opacity: 0.9;">Next-Gen AI Assistive Technology for Hospitals & Home Care.</p>
+                <ul style="margin-top: 30px; list-style: none; line-height: 2;">
+                    <li>✓ 22+ Hand Gestures</li>
+                    <li>✓ Voice Synthesis</li>
+                    <li>✓ Real-time Monitoring</li>
+                    <li>✓ Emergency SOS</li>
+                </ul>
+            </div>
+            <div class="auth-right">
+                <h2 style="margin-bottom: 20px;">Staff Login</h2>
+                <label>ID / Email</label>
+                <input type="text" class="auth-input" value="nurse@visioncare.com">
+                <label>Password</label>
+                <input type="password" class="auth-input" value="********">
+                <button class="btn-login" onclick="login()">LOGIN TO SYSTEM</button>
+                <p style="margin-top: 15px; font-size: 0.8rem; color: #666;">By logging in, you enable camera & audio access.</p>
+            </div>
+        </div>
     </div>
 
-    <nav class="navbar">
-        <div class="logo">🎯 VisionCare <span class="badge">PRO</span></div>
-        <div class="status-indicator">
-            System: <span class="online">● Online</span>
-        </div>
-    </nav>
-
-    <div class="container">
-        
-        <section class="video-section">
-            <div class="video-wrapper">
-                <video id="input_video" playsinline></video>
-                <canvas id="output_canvas"></canvas>
-                <div class="overlay-text" id="overlayText">System Ready</div>
+    <div id="app-screen">
+        <nav class="navbar">
+            <div style="font-weight: bold; font-size: 1.2rem;">🎯 VisionCare <span style="background:var(--primary); font-size:0.7rem; padding:2px 6px; border-radius:4px; margin-left:5px;">PRO</span></div>
+            <div class="nav-tabs">
+                <button class="nav-btn active" onclick="switchTab('monitor')"><i class="fas fa-video"></i> Monitor</button>
+                <button class="nav-btn" onclick="switchTab('patient')"><i class="fas fa-user-injured"></i> Patient Info</button>
+                <button class="nav-btn" onclick="switchTab('comms')"><i class="fas fa-comments"></i> Communication</button>
             </div>
-        </section>
+            <div style="font-size: 0.9rem;"><i class="fas fa-user-nurse"></i> Nurse Joy</div>
+        </nav>
 
-        <section class="data-section">
-            <div class="card-grid">
-                <div class="card">
-                    <div class="card-label">Recognized Gesture</div>
-                    <div class="card-value highlight" id="gestureName">Scanning...</div>
-                </div>
-                <div class="card">
-                    <div class="card-label">Confidence</div>
-                    <div class="card-value" id="actionName">--</div>
-                </div>
-            </div>
-
-            <div class="card chart-card">
-                <canvas id="usageChart"></canvas>
-            </div>
-
-            <div id="msgBox" class="message-box">
-                👋 Waiting for Gesture...
-            </div>
+        <div class="main-content">
             
-            <div class="logs-panel">
-                <h3>COMMUNICATION LOG</h3>
-                <ul id="logList">
-                    </ul>
+            <div id="tab-monitor" class="grid-section active">
+                <div class="video-container">
+                    <video id="input_video" playsinline></video>
+                    <canvas id="output_canvas"></canvas>
+                    <div class="overlay-status"><div class="dot active"></div> AI Active</div>
+                    <div id="loader-overlay"><div class="spinner"></div><div style="margin-top:10px; color:white;">Loading AI...</div></div>
+                </div>
+
+                <div class="sidebar">
+                    <div class="card">
+                        <h3>Recognized Gesture</h3>
+                        <div class="value" id="gestureName" style="color: var(--primary);">Scanning...</div>
+                    </div>
+                    
+                    <div class="msg-box" id="msgBox">
+                        👋 System Ready
+                    </div>
+
+                    <div class="card" style="height: 200px;">
+                        <canvas id="usageChart"></canvas>
+                    </div>
+
+                    <div class="card" style="flex: 1; overflow: hidden; display: flex; flex-direction: column;">
+                        <h3>Recent Requests</h3>
+                        <ul id="miniLog" style="list-style: none; font-size: 0.85rem; color: var(--text-muted); overflow-y: auto;">
+                            </ul>
+                    </div>
+                </div>
             </div>
-        </section>
+
+            <div id="tab-patient" class="section">
+                <div class="patient-grid">
+                    <div class="profile-card">
+                        <div class="profile-img">👨‍🦳</div>
+                        <h2>John Doe</h2>
+                        <p style="color: var(--text-muted);">Room 304 - Bed A</p>
+                        <hr style="border-color: #334155; margin: 20px 0;">
+                        
+                        <div class="detail-row"><span>Age:</span> <strong>72 Years</strong></div>
+                        <div class="detail-row"><span>Blood Type:</span> <strong>O+</strong></div>
+                        <div class="detail-row"><span>Condition:</span> <strong style="color: var(--warning);">Post-Op Recovery</strong></div>
+                        <div class="detail-row"><span>Doctor:</span> <strong>Dr. Strange</strong></div>
+                        <div class="detail-row"><span>Emergency:</span> <strong>+1 987 654 3210</strong></div>
+                        
+                        <button class="btn-login" style="background: var(--bg-dark); border: 1px solid #334155; margin-top: 20px;">Edit Profile</button>
+                    </div>
+                    
+                    <div class="card" style="height: 100%;">
+                        <h3>Medical Notes</h3>
+                        <textarea style="width: 100%; height: 150px; background: #0f172a; border: 1px solid #334155; color: white; padding: 10px; margin-top: 10px; border-radius: 8px;">Patient has difficulty speaking due to recent surgery. Using VisionCare for basic needs. Monitor for hydration levels.</textarea>
+                        
+                        <h3 style="margin-top: 20px;">Vitals History</h3>
+                        <div style="height: 250px; margin-top: 10px;">
+                            <canvas id="vitalsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-comms" class="section">
+                <div class="chat-container">
+                    <div class="chat-header">
+                        <h3>💬 Gesture Communication History</h3>
+                    </div>
+                    <div class="chat-body" id="fullChatLog">
+                        <div class="chat-msg system">System initialized. Monitoring started. <span class="time-stamp">09:00 AM</span></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
     </div>
 
     <script>
-        // --- 1. SETUP VARIABLES ---
+        // --- 1. STATE & VARIABLES ---
         const videoElement = document.getElementById('input_video');
         const canvasElement = document.getElementById('output_canvas');
         const ctx = canvasElement.getContext('2d');
         const gestureText = document.getElementById('gestureName');
-        const actionText = document.getElementById('actionName');
         const msgBox = document.getElementById('msgBox');
-        const logList = document.getElementById('logList');
-        const overlayText = document.getElementById('overlayText');
+        const miniLog = document.getElementById('miniLog');
+        const fullChatLog = document.getElementById('fullChatLog');
 
         let lastSpoken = "";
         let lastSpeakTime = 0;
         let sosStartTime = null;
-        const SOS_THRESHOLD = 2000; // 2 seconds to hold fist
+        const SOS_THRESHOLD = 2000;
 
-        // --- 2. VOICE ENGINE ---
+        // --- 2. AUTHENTICATION & TABS ---
+        function login() {
+            // Unlock Audio Context on user interaction
+            const s = new SpeechSynthesisUtterance("");
+            window.speechSynthesis.speak(s);
+
+            document.getElementById('auth-screen').style.display = 'none';
+            document.getElementById('app-screen').style.display = 'flex';
+            
+            // Start Camera & AI
+            startCamera();
+            initCharts();
+            speak("Welcome back, Nurse Joy. System is online.");
+        }
+
+        function switchTab(tabName) {
+            // Hide all
+            document.getElementById('tab-monitor').classList.remove('active');
+            document.getElementById('tab-patient').classList.remove('active');
+            document.getElementById('tab-comms').classList.remove('active');
+            
+            // Deactivate buttons
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+
+            // Show target
+            if(tabName === 'monitor') document.getElementById('tab-monitor').classList.add('active');
+            if(tabName === 'patient') document.getElementById('tab-patient').classList.add('active');
+            if(tabName === 'comms') document.getElementById('tab-comms').classList.add('active');
+
+            // Activate button
+            event.currentTarget.classList.add('active');
+        }
+
+        // --- 3. VOICE & LOGGING ---
         function speak(text, priority = false) {
             if (!text || text === "Scanning..." || text === "Waiting..." || text === "Holding...") return;
             
             const now = Date.now();
-            // Debounce: prevent spamming same word within 3s unless priority (SOS)
             if (!priority && text === lastSpoken && (now - lastSpeakTime < 3000)) return;
 
             window.speechSynthesis.cancel();
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.rate = 1.0;
-            
-            // Prefer Google US English
             const voices = window.speechSynthesis.getVoices();
-            const preferred = voices.find(v => v.name.includes("Google US English") || v.name.includes("Zira"));
+            const preferred = voices.find(v => v.name.includes("Google US English"));
             if (preferred) utterance.voice = preferred;
 
             window.speechSynthesis.speak(utterance);
@@ -253,224 +367,168 @@
             lastSpoken = text;
             lastSpeakTime = now;
             
-            addLog(text, priority);
+            // Add to Logs
+            addToLogs(text, priority);
         }
 
-        // --- 3. LOGGING SYSTEM ---
-        function addLog(message, isEmergency = false) {
+        function addToLogs(text, isUrgent) {
+            const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            
+            // 1. Mini Log (Sidebar)
             const li = document.createElement('li');
-            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            
-            li.innerHTML = `<strong style="color: ${isEmergency ? '#ef4444' : '#f8fafc'}">${message}</strong> <span>${time}</span>`;
-            logList.prepend(li);
-            
-            // Keep only last 20 logs
-            if (logList.children.length > 20) logList.removeChild(logList.lastChild);
-            
-            updateChart(message);
+            li.innerHTML = `<span style="color:${isUrgent ? '#ef4444' : 'white'}">${text}</span> <span style="float:right; opacity:0.5">${time}</span>`;
+            li.style.padding = "5px 0";
+            li.style.borderBottom = "1px solid #334155";
+            miniLog.prepend(li);
+
+            // 2. Full Chat Log
+            const div = document.createElement('div');
+            div.className = `chat-msg user`;
+            if(isUrgent) div.style.background = "#dc2626";
+            div.innerHTML = `${text} <span class="time-stamp">${time}</span>`;
+            fullChatLog.appendChild(div);
+            fullChatLog.scrollTop = fullChatLog.scrollHeight; // Auto scroll
+
+            updateChart(text);
         }
 
-        // --- 4. GESTURE RECOGNITION MATH ---
-        function dist(p1, p2) {
-            return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2));
-        }
+        // --- 4. GESTURE LOGIC (22 GESTURES) ---
+        function dist(p1, p2) { return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2)); }
 
-        function getFingerStates(landmarks) {
-            let fingers = [0, 0, 0, 0, 0]; // [Thumb, Index, Middle, Ring, Pinky]
-
-            // Thumb (Logic simplified for Right Hand, works mostly for Left too)
+        function determineGesture(landmarks) {
+            let fingers = [0, 0, 0, 0, 0];
+            // Thumb (Simple X-axis check)
             if (landmarks[4].x < landmarks[3].x) fingers[0] = 1;
-
-            // Fingers (Tip above PIP joint)
+            // Fingers (Y-axis check)
             if (landmarks[8].y < landmarks[6].y) fingers[1] = 1;
             if (landmarks[12].y < landmarks[10].y) fingers[2] = 1;
             if (landmarks[16].y < landmarks[14].y) fingers[3] = 1;
             if (landmarks[20].y < landmarks[18].y) fingers[4] = 1;
 
-            return fingers;
-        }
+            const sig = fingers.join("");
 
-        function determineGesture(landmarks) {
-            const fingers = getFingerStates(landmarks);
-            const signature = fingers.join(""); // e.g. "01100"
+            // OK Sign (Geometry)
+            if (dist(landmarks[4], landmarks[8]) < 0.05) return { name: "OK Sign", msg: "I am Okay", type: "normal" };
 
-            // --- GEOMETRIC CHECKS ---
-            // OK Sign (Index touches Thumb)
-            if (dist(landmarks[4], landmarks[8]) < 0.05) {
-                return { name: "OK Sign", msg: "I am Okay", type: "normal" };
-            }
-
-            // --- 22 GESTURE MAPPING ---
-            switch (signature) {
-                // EMERGENCY
+            // Combinations
+            switch (sig) {
                 case "00000": return { name: "Fist", msg: "Holding...", type: "sos" };
-
-                // BASICS
                 case "11111": return { name: "Open Palm", msg: "Hello", type: "normal" };
-                case "01000": return { name: "Index Up", msg: "One", type: "normal" };
+                case "01000": return { name: "Index", msg: "One", type: "normal" };
                 case "01100": return { name: "Victory", msg: "Two", type: "normal" };
                 case "01110": return { name: "3 Fingers", msg: "I need Water", type: "request" };
                 case "01111": return { name: "4 Fingers", msg: "I need Help", type: "request" };
                 case "11110": return { name: "5 (Thumb)", msg: "Five", type: "normal" };
-
-                // COMMANDS
                 case "10000": return { name: "Thumb Up", msg: "Yes", type: "normal" };
-                case "00001": return { name: "Pinky Up", msg: "I need the Washroom", type: "request" }; // UPDATED
+                case "00001": return { name: "Pinky Up", msg: "I need the Washroom", type: "request" };
                 case "11000": return { name: "L-Shape", msg: "Lights On", type: "command" };
                 case "10001": return { name: "Phone", msg: "Call Doctor", type: "urgent" };
                 case "01001": return { name: "Rock On", msg: "Turn on TV", type: "command" };
                 case "11001": return { name: "Spider-Man", msg: "I Love You", type: "normal" };
                 case "11100": return { name: "Gun Shape", msg: "I have Pain", type: "urgent" };
-                
                 default: return { name: "Scanning...", msg: "Waiting...", type: "none" };
             }
         }
 
-        // --- 5. MEDIAPIPE PROCESSING ---
+        // --- 5. AI ENGINE ---
         function onResults(results) {
-            // Resize Canvas
+            document.getElementById('loader-overlay').style.display = 'none';
             canvasElement.width = videoElement.videoWidth;
             canvasElement.height = videoElement.videoHeight;
             ctx.save();
             ctx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-            
-            // Draw Video
             ctx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
 
             if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
                 const landmarks = results.multiHandLandmarks[0];
-                
-                // Draw Skeleton
                 drawConnectors(ctx, landmarks, HAND_CONNECTIONS, {color: '#6366f1', lineWidth: 4});
                 drawLandmarks(ctx, landmarks, {color: '#ef4444', lineWidth: 2});
 
-                // Detect Logic
                 const result = determineGesture(landmarks);
-                
                 gestureText.innerText = result.name;
-                
-                // Confidence Sim (just visual)
-                actionText.innerText = result.type === "none" ? "--" : "98%";
 
-                // --- SOS HANDLER ---
                 if (result.type === "sos") {
                     if (!sosStartTime) sosStartTime = Date.now();
                     const elapsed = Date.now() - sosStartTime;
-                    const remaining = Math.ceil((SOS_THRESHOLD - elapsed) / 1000);
                     
-                    overlayText.innerText = `SOS in ${remaining}s`;
-                    msgBox.style.background = "#f59e0b"; // Warning Orange
+                    msgBox.innerText = `SOS in ${Math.ceil((SOS_THRESHOLD - elapsed)/1000)}s`;
+                    msgBox.style.background = "#f59e0b";
                     
                     if (elapsed > SOS_THRESHOLD) {
-                        msgBox.innerText = "🚨 EMERGENCY SOS TRIGGERED 🚨";
-                        msgBox.classList.add("emergency");
-                        speak("Emergency! Please help immediately!", true);
+                        msgBox.innerText = "🚨 EMERGENCY 🚨";
+                        msgBox.classList.add("sos");
+                        speak("Emergency! Please help!", true);
                     }
-                } 
-                // --- NORMAL HANDLER ---
-                else {
+                } else {
                     sosStartTime = null;
-                    msgBox.classList.remove("emergency");
-                    msgBox.style.background = ""; // Reset gradient
-                    overlayText.innerText = result.name;
+                    msgBox.classList.remove("sos");
+                    msgBox.style.background = ""; 
                     
                     if (result.type !== "none") {
-                        msgBox.innerHTML = `<span style="font-size:1.5rem">🗣</span> ${result.msg}`;
+                        msgBox.innerText = result.msg;
                         speak(result.msg);
                     } else {
-                        msgBox.innerText = "👋 Waiting for Gesture...";
+                        msgBox.innerText = "👋 System Ready";
                     }
                 }
-            } else {
-                overlayText.innerText = "No Hand Detected";
-                sosStartTime = null;
             }
             ctx.restore();
         }
 
-        // --- 6. SETUP CAMERA & HANDS ---
-        const hands = new Hands({locateFile: (file) => {
-            return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
-        }});
-
-        hands.setOptions({
-            maxNumHands: 1,
-            modelComplexity: 1,
-            minDetectionConfidence: 0.7,
-            minTrackingConfidence: 0.5
-        });
-
+        const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
+        hands.setOptions({maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.7, minTrackingConfidence: 0.5});
         hands.onResults(onResults);
 
-        const camera = new Camera(videoElement, {
-            onFrame: async () => {
-                await hands.send({image: videoElement});
-            },
-            width: 1280,
-            height: 720
-        });
-
-        function initApp() {
-            // Unlock Audio
-            const s = new SpeechSynthesisUtterance("");
-            window.speechSynthesis.speak(s);
-            
-            document.getElementById('loader').style.display = 'none';
+        function startCamera() {
+            const camera = new Camera(videoElement, {
+                onFrame: async () => { await hands.send({image: videoElement}); },
+                width: 1280, height: 720
+            });
             camera.start();
-            initChart();
         }
 
-        // --- 7. CHARTS ---
+        // --- 6. CHARTS ---
         let chartInstance = null;
-        function initChart() {
+        function initCharts() {
             const ctxChart = document.getElementById('usageChart').getContext('2d');
-            
-            // Set chart text color to white for Dark Mode
             Chart.defaults.color = '#94a3b8';
-            Chart.defaults.borderColor = '#334155';
-
             chartInstance = new Chart(ctxChart, {
                 type: 'bar',
                 data: {
                     labels: ['Help', 'Water', 'Washroom', 'Pain', 'Hello'],
                     datasets: [{
-                        label: 'Requests',
+                        label: 'Counts',
                         data: [0, 0, 0, 0, 0],
-                        backgroundColor: ['#ef4444', '#3b82f6', '#8b5cf6', '#f59e0b', '#10b981'],
-                        borderRadius: 4
+                        backgroundColor: ['#ef4444', '#3b82f6', '#8b5cf6', '#f59e0b', '#10b981']
                     }]
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: { 
-                        y: { beginAtZero: true, grid: { color: '#334155' } }, 
-                        x: { grid: { display: false } } 
-                    }
-                }
+                options: { responsive: true, maintainAspectRatio: false, plugins: {legend: {display: false}}, scales: {x:{grid:{display:false}}, y:{grid:{color:'#334155'}}} }
+            });
+
+            // Vitals Chart (Mock)
+            new Chart(document.getElementById('vitalsChart').getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: ['8am', '9am', '10am', '11am', '12pm'],
+                    datasets: [{
+                        label: 'Heart Rate',
+                        data: [72, 75, 71, 78, 74],
+                        borderColor: '#10b981',
+                        tension: 0.4
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
             });
         }
 
         function updateChart(label) {
-            if (!chartInstance) return;
+            if(!chartInstance) return;
             const map = { "I need Help": 0, "I need Water": 1, "I need the Washroom": 2, "I have Pain": 3, "Hello": 4 };
-            
             if (map[label] !== undefined) {
                 chartInstance.data.datasets[0].data[map[label]]++;
                 chartInstance.update();
             }
         }
-
-        // Wait for MediaPipe load
-        window.onload = () => {
-            setTimeout(() => {
-                document.querySelector('.spinner').style.display = 'none';
-                document.getElementById('loadingText').style.display = 'none';
-                document.querySelector('p').style.display = 'none';
-                document.getElementById('startBtn').style.display = 'block';
-            }, 2500);
-        };
     </script>
 </body>
 </html>
